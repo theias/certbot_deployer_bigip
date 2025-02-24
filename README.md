@@ -1,7 +1,7 @@
 certbot_deployer_bigip
 ===========
 
-Certbot Deployer plugin for deploying certificates to F5 BIG-IP devices
+[Certbot Deployer] plugin for deploying certificates to F5 BIG-IP devices
 
 # Requires
 
@@ -121,4 +121,5 @@ Please make sure to update tests along with any changes.
 License :: OSI Approved :: MIT License
 
 
+[Certbot Deployer]: https://github.com/theias/certbot_deployer
 [pip]: https://pip.pypa.io/en/stable/
