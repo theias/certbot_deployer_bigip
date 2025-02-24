@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+if [[ "$(git branch --show-current)" != "main" ]]; then
+  exit 0
+fi
+
+# Redirect output to stderr.
+exec 1>&2
+
+make all
+make changelog-verify

@@ -1,0 +1,12 @@
+*.egg-info/
+*.swo
+*.swp
+*pyc
+*p?~
+__pycache__/
+.mypy_cache/
+.pytest_cache
+build/
+dist/
+dist*/
+venv/
