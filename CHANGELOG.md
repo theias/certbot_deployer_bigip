@@ -5,6 +5,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## Unreleased
 
+## 0.1.0 - 2025-02-26
+### Changed
+- prep for release
+
 ## 0.0.1 - 2025-02-25
 ### Added
 - initial commit
