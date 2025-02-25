@@ -6,7 +6,8 @@
 __pycache__/
 .mypy_cache/
 .pytest_cache
-build/
+build*
+release*
 dist/
 dist*/
 venv/

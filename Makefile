@@ -6,7 +6,7 @@ STATIC_MYPY := venv/mypy.timestamp
 PYTHON_FILES := $(shell find . -path ./venv -prune -o -name '*.py' -print)
 PACKAGE := certbot_deployer_bigip
 VENV := venv/venv.timestamp
-VERSION := $(shell python3 -c 'import certbot_deployer_bigip; print(certbot_deployer_bigip.__version__)')
+VERSION := $(shell python3 -c 'meta_namespace = {}; f = open("certbot_deployer_bigip/meta.py", "r", encoding="utf-8"); exec(f.read(), meta_namespace); f.close(); print(meta_namespace.get("__version__"))')
 BUILD_DIR := dist_$(VERSION)
 BUILD := $(BUILD_DIR)/.build.timestamp
 _WARN := "\033[33m[%s]\033[0m %s\n"  # Yellow text for "printf"
@@ -20,9 +20,12 @@ $(VENV):
 	touch $(VENV)
 $(DEPENDENCIES): $(VENV) requirements-make.txt requirements.txt
 	# Install Python dependencies, runtime *and* test/build
+	./venv/bin/pip3 install --upgrade pip
 	./venv/bin/python3 -m pip install --requirement requirements-make.txt
 	./venv/bin/python3 -m pip install --requirement requirements.txt
 	touch $(DEPENDENCIES)
+.PHONY: dependencies
+dependencies: $(DEPENDENCIES)
 
 $(STATIC_BLACK): $(PYTHON_FILES) $(DEPENDENCIES)
 	# Check style
@@ -70,8 +73,27 @@ changelog-verify: $(DEPENDENCIES)
 	@if [ -z "$$(./venv/bin/kacl-cli current)" ] || [[ $(VERSION) == "$$(./venv/bin/kacl-cli current)" ]]; then true; else false; fi
 	# Yay
 
+.PHONY: changelog-verify changelog-add-fixed changelog-add-added changelog-add-changed
+changelog-add-fixed: $(DEPENDENCIES)
+	# Add a new "fixed" item to the changelog
+	@read -p "Describe the fix: " userstr; \
+	./venv/bin/kacl-cli add -m fixed "$$userstr"
+changelog-add-added: $(DEPENDENCIES)
+	# Add a new "added" item to the changelog
+	@read -p "Describe the fix: " userstr; \
+	./venv/bin/kacl-cli add -m added "$$userstr"
+changelog-add-changed: $(DEPENDENCIES)
+	# Add a new "changed" item to the changelog
+	@read -p "Describe the fix: " userstr; \
+	./venv/bin/kacl-cli add -m changed "$$userstr"
+
+.PHONY: changelog-release changelog-verify
+changelog-release: $(DEPENDENCIES)
+	# Create a new "release" in the changelog
+	./venv/bin/kacl-cli release -m "$(VERSION)"
+
 .PHONY: package
-package: changelog-verify $(BUILD) static-analysis test
+package: static-analysis test changelog-verify $(BUILD)
 
 $(BUILD): $(DEPENDENCIES)
 	# Build the package
@@ -80,8 +102,18 @@ $(BUILD): $(DEPENDENCIES)
 		exit 1; \
 		fi
 	mkdir --parents $(BUILD_DIR)
+	mkdir --parents $(BUILD_DIR).meta
+	ln -f -s $(BUILD_DIR) release
+	ln -f -s $(BUILD_DIR).meta release.meta
+	@cat README.md <(tail -n+1 CHANGELOG.md LICENSE) > release.meta/long_description.md
 	./venv/bin/python3 -m build --outdir $(BUILD_DIR)
+	./venv/bin/kacl-cli get "$(VERSION)" > release.meta/CHANGELOG.md
 	touch $(BUILD)
+
+.PHONY: tag
+tag: changelog-verify static-analysis test
+	# Tag the latest commit with the current version
+	git tag -a -m "v$(VERSION)" "v$(VERSION)"
 
 .PHONY: publish
 publish: package
@@ -110,6 +142,7 @@ confirm-hooks:
 clean:
 	# Cleaning everything but the `venv`
 	rm -rf ./dist_*
+	rm -rf ./release*
 	rm -rf ./certbot_deployer_bigip.egg-info/
 	rm -rf ./.mypy_cache
 	rm -rf ./.pytest_cache
