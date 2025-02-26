@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Any, List, Optional, Tuple, Type
 
 import pytest
+
 from invoke.exceptions import UnexpectedExit
 from invoke.runners import Result
 
@@ -23,7 +24,7 @@ from certbot_deployer import (
 )
 from certbot_deployer import CertificateComponent, Deployer
 from certbot_deployer.test_helpers import generate_self_signed_cert
-from certbot_deployer_bigip import __main__ as plugin_main
+import certbot_deployer_bigip._main as plugin_main
 from certbot_deployer_bigip.certbot_deployer_bigip import (
     BigipCertificateBundle,
     BigipDeployer,

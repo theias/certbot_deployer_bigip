@@ -1,4 +1,4 @@
 """ certbot_deployer_bigip """
 
-from .__main__ import main
+from ._main import main
 from .meta import *
