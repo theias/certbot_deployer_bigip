@@ -32,6 +32,7 @@ from invoke.exceptions import UnexpectedExit
 
 from certbot_deployer import main as framework_main
 from certbot_deployer import Deployer, CertificateBundle, CertificateComponent
+from certbot_deployer_bigip.meta import __description__
 
 BIGIP_FINGERPRINT_ALGO: str = "SHA256"
 BIGIP_FINGERPRINT_ALGO_FUNC: Callable = hashes.SHA256
@@ -221,14 +222,32 @@ class BigipDeployer(Deployer):
         Modify argparse subparser for this deployer target
         """
         parser.formatter_class = argparse.RawDescriptionHelpFormatter
-        parser.description = "BIG-IP subcommand"
+        parser.description = f"""BIG-IP subcommand
+        {__description__}
+        """
         parser.epilog = """Examples:
+        All examples assume the tool is being run as a Certbot deploy hook, and
+        the environment variable `RENEWED_LINEAGE` points to the live
+        certificate directory just updated by Certbot.
 
-            # <example descr>
+            # Install certificate on the BIG-IP device named with its expiry timestamp
+            # as `host.domain.tld.YYY-MM-DDTHH:MM:SS`
 
-            %(prog)s <args>
+            %(prog)s --host bigip.domain.tld
+
+            # Install certificate on the BIG-IP device and then synchronize
+            # device changes to a device group
+
+            %(prog)s --host bigip.domain.tld --sync-group yoursyncgroup
+
+            # Install certificate on the BIG-IP device and then associate it
+            # with a cleint-ssl profile. If the profile does not exist, it will be created.
+
+            %(prog)s --host bigip.domain.tld --profile-name yourprofile \\
+                --profile-type client-ssl
 
         """
+
         parser.add_argument(
             "--host",
             "-H",
@@ -247,7 +266,7 @@ class BigipDeployer(Deployer):
                 "The temp path on the BIG-IP to use when uploading the certificates for "
                 "installation. This tool will try to zero out the certificates at the end "
                 "of the run once they are ingested into the BIG-IP config, but you should "
-                'probably try to put them in a "safe" place'
+                'probably try to put them in a "safe" place. Default: `/var/tmp`'
             ),
             type=str,
         )
@@ -280,9 +299,10 @@ class BigipDeployer(Deployer):
             "--profile-type",
             "-r",
             help=(
-                "The type of profile to create if necessary e.g. `client-ssl`. If given, "
-                "the corresponding `--profile` is also required. If neither are given, this "
-                "tool will not create/modify any profiles."
+                "The type of profile to create if necessary e.g. `client-ssl`. See "
+                "BIG-IP docs for details on all profile types. If given, the "
+                "corresponding `--profile-name` is also required. If neither are given, "
+                "this tool will not create/modify any profiles."
             ),
             type=str,
         )
