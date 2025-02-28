@@ -3,9 +3,13 @@ certbot_deployer_bigip
 
 [Certbot Deployer] plugin for deploying certificates to F5 BIG-IP devices
 
+This tool runs as a [Certbot] "deploy hook", and uploads and installs Certbot certificates to BIG-IP and optionally associates them with a profile.
+
 # Requires
 
 * Python 3.9+
+* `scp` in $PATH
+* `ssh` in $PATH
 * <details>
     <summary>Compatible BIG-IP software version</summary>
 
@@ -35,6 +39,12 @@ certbot_deployer_bigip
 
 # Installation
 
+You can install with [pipx]:
+
+```sh
+pipx certbot_deployer_bigip
+```
+
 You can install with [pip]:
 
 ```sh
@@ -51,14 +61,15 @@ pip install certbot_deployer_bigip
 # Usage
 
 ```
-usage: certbot-deployer-bigip bigip [-h] --host HOST
-                                    [--dest-temp-dir DEST_DIR_PATH]
-                                    [--cert-name CERT_NAME]
-                                    [--profile-name PROFILE_NAME]
-                                    [--profile-type PROFILE_TYPE]
-                                    [--sync-group SYNC_GROUP]
+usage: certbot-deployer bigip [-h] --host HOST [--dest-temp-dir DEST_DIR_PATH]
+                              [--cert-name CERT_NAME]
+                              [--profile-name PROFILE_NAME]
+                              [--profile-type PROFILE_TYPE]
+                              [--sync-group SYNC_GROUP] [--dry-run]
 
 BIG-IP subcommand
+        Certbot Deployer plugin for deploying certificates to F5 BIG-IP devices
+
 
 options:
   -h, --help            show this help message and exit
@@ -68,7 +79,8 @@ options:
                         certificates for installation. This tool will try to
                         zero out the certificates at the end of the run once
                         they are ingested into the BIG-IP config, but you
-                        should probably try to put them in a "safe" place
+                        should probably try to put them in a "safe" place.
+                        Default: `/var/tmp`
   --cert-name CERT_NAME, -c CERT_NAME
                         The name to give the certificate objects on the BIG-
                         IP. If not given, this tool will use the Common Name
@@ -82,26 +94,48 @@ options:
                         given, this tool will not create/modify any profiles.
   --profile-type PROFILE_TYPE, -r PROFILE_TYPE
                         The type of profile to create if necessary e.g.
-                        `client-ssl`. If given, the corresponding `--profile`
-                        is also required. If neither are given, this tool will
-                        not create/modify any profiles.
+                        `client-ssl`. See BIG-IP docs for details on all
+                        profile types. If given, the corresponding `--profile-
+                        name` is also required. If neither are given, this
+                        tool will not create/modify any profiles.
   --sync-group SYNC_GROUP, -s SYNC_GROUP
                         The sync-group to synchronize to after the
                         certificates are deployed. This tool will not try to
                         sync the BIG-IP node if this argument is not given
+  --dry-run, -d         Report the workflow steps that would run without
+                        actually running them
 
 Examples:
 
-            # <example descr>
+All examples assume the tool is being run as a Certbot deploy hook, and
+the environment variable `RENEWED_LINEAGE` points to the live
+certificate directory just updated by Certbot.
 
-            certbot-deployer-bigip bigip <args>
+    # Install certificate on the BIG-IP device named with its expiry timestamp
+    # as `host.domain.tld.YYY-MM-DDTHH:MM:SS` (the default)
 
-        
+    certbot-deployer bigip --host bigip.domain.tld
+
+    # Install certificate on the BIG-IP device and then synchronize
+    # device changes to a device group
+
+    certbot-deployer bigip --host bigip.domain.tld --sync-group yoursyncgroup
+
+    # Install certificate on the BIG-IP device and then associate it
+    # with a client-ssl profile. If the profile does not exist, it will be created.
+
+    certbot-deployer bigip --host bigip.domain.tld --profile-name yourprofile \
+        --profile-type client-ssl
+
+    # Print out the deployment tasks that would be taken, but do not run them
+
+    certbot-deployer bigip --host bigip.domain.tld --dry-run
 ```
 
 # Limitations
 
-\[[...]\]
+* "Rollbacks" are not yet implemented (and may not be) in the case of failure during deployment.
+    - This should not be able to go more "wrong" than failing to synchronize after modifying a profile (if one is even configured), as no other operations should be touching any existing BIG-IP resources.
 
 # Contributing
 
@@ -122,4 +156,6 @@ License :: OSI Approved :: MIT License
 
 
 [Certbot Deployer]: https://github.com/theias/certbot_deployer
+[Certbot]: https://certbot.eff.org/
 [pip]: https://pip.pypa.io/en/stable/
+[pipx]: https://pipx.pypa.io/
