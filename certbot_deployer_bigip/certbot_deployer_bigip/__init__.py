@@ -10,6 +10,7 @@ import re
 import sys
 import subprocess
 import tempfile
+import textwrap
 
 # import sys
 import warnings
@@ -225,7 +226,10 @@ class BigipDeployer(Deployer):
         parser.description = f"""BIG-IP subcommand
         {__description__}
         """
-        parser.epilog = """Examples:
+        parser.epilog = textwrap.dedent(
+            """
+        Examples:
+
         All examples assume the tool is being run as a Certbot deploy hook, and
         the environment variable `RENEWED_LINEAGE` points to the live
         certificate directory just updated by Certbot.
@@ -241,12 +245,30 @@ class BigipDeployer(Deployer):
             %(prog)s --host bigip.domain.tld --sync-group yoursyncgroup
 
             # Install certificate on the BIG-IP device and then associate it
-            # with a cleint-ssl profile. If the profile does not exist, it will be created.
+            # with a client-ssl profile. If the profile does not exist, it will be created.
 
             %(prog)s --host bigip.domain.tld --profile-name yourprofile \\
                 --profile-type client-ssl
 
+        Actions this tool can take on your BIG-IP device
+
+            * (optional) Make sure device is synced with its group if
+                `--sync-group` is passed
+            * Upload the fullchain certificate file
+            * Install the fullchain certificate
+            * Verify the fullchain certificate installation
+            * Upload the key file
+            * Install the key
+            * Verify the key installation
+            * Overwrite the uploaded files with empty files (because a user
+                with simple certificate permissions will not have permission to
+                delete anything)
+            * (optional) modify/create the given profile and associate it the
+                new certificate
+            * (optional) synchronize the BIG-IP device with the given sync group
+
         """
+        )
 
         parser.add_argument(
             "--host",
