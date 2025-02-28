@@ -3,6 +3,8 @@ certbot_deployer_bigip
 
 [Certbot Deployer] plugin for deploying certificates to F5 BIG-IP devices
 
+> BIG-IP is a collection of hardware platforms and software solutions providing services focused on security, reliability, and performance. - [What is BIG-IP?]
+
 This tool runs as a [Certbot] "deploy hook", and uploads and installs Certbot certificates to BIG-IP and optionally associates them with a profile.
 
 # Requires
@@ -157,5 +159,6 @@ License :: OSI Approved :: MIT License
 
 [Certbot Deployer]: https://github.com/theias/certbot_deployer
 [Certbot]: https://certbot.eff.org/
+[What is BIG-IP?]: https://community.f5.com/kb/technicalarticles/what-is-big-ip/279398
 [pip]: https://pip.pypa.io/en/stable/
 [pipx]: https://pipx.pypa.io/
