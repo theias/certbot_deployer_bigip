@@ -235,7 +235,7 @@ class BigipDeployer(Deployer):
         certificate directory just updated by Certbot.
 
             # Install certificate on the BIG-IP device named with its expiry timestamp
-            # as `host.domain.tld.YYY-MM-DDTHH:MM:SS`
+            # as `host.domain.tld.YYY-MM-DDTHH:MM:SS` (the default)
 
             %(prog)s --host bigip.domain.tld
 
@@ -250,22 +250,9 @@ class BigipDeployer(Deployer):
             %(prog)s --host bigip.domain.tld --profile-name yourprofile \\
                 --profile-type client-ssl
 
-        Actions this tool can take on your BIG-IP device
+            # Print out the deployment tasks that would be taken, but do not run them
 
-            * (optional) Make sure device is synced with its group if
-                `--sync-group` is passed
-            * Upload the fullchain certificate file
-            * Install the fullchain certificate
-            * Verify the fullchain certificate installation
-            * Upload the key file
-            * Install the key
-            * Verify the key installation
-            * Overwrite the uploaded files with empty files (because a user
-                with simple certificate permissions will not have permission to
-                delete anything)
-            * (optional) modify/create the given profile and associate it the
-                new certificate
-            * (optional) synchronize the BIG-IP device with the given sync group
+            %(prog)s --host bigip.domain.tld --dry-run
 
         """
         )
@@ -338,6 +325,16 @@ class BigipDeployer(Deployer):
                 "given"
             ),
             type=str,
+        )
+
+        parser.add_argument(
+            "--dry-run",
+            "-d",
+            action="store_true",
+            default=False,
+            help=(
+                "Report the workflow steps that would run without actually running them"
+            ),
         )
 
     def __str__(self) -> str:
@@ -637,6 +634,11 @@ class BigipDeployer(Deployer):
             sync_group=args.sync_group,
         )
         workflow = deployer.get_workflow()
+        if args.dry_run:
+            logging.warning("In dry run mode. Will not run actual deployment tasks.")
         for task in workflow:
-            logging.info("Running workflow step: %s", task.name)
-            task.execute()
+            if args.dry_run:
+                print(f"Would run task: {task.name}")
+            else:
+                logging.info("Running workflow step: %s", task.name)
+                task.execute()

@@ -692,16 +692,62 @@ def test_static_entrypoint(
 
     monkeypatch.setattr(BigipDeployer, "get_workflow", fake_get_workflow)
     args: argparse.Namespace = argparse.Namespace(
-        renewed_lineage=bigip_certificate_bundle.path,
         cert_name=None,
+        dest_dir_path=None,
+        dry_run=False,
+        host="somewhere.domain.tld",
         profile_name=None,
         profile_type=None,
-        dest_dir_path=None,
-        host="somewhere.domain.tld",
+        renewed_lineage=bigip_certificate_bundle.path,
         sync_group=None,
     )
     BigipDeployer.entrypoint(args=args, certificate_bundle=bigip_certificate_bundle)
     assert run_count == len(tasks)
+
+
+def test_dry_run(
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: Any,
+    bigip_certificate_bundle: BigipCertificateBundle,
+) -> None:
+    """
+    Verify that our entrypoint prints out what it *would* do and does not run anything
+    """
+    run_count: int = 0
+
+    def fake_task() -> None:
+        nonlocal run_count
+        run_count += 1
+
+    task_names: List[str] = [
+        "mytask1",
+        "mytask2",
+    ]
+    tasks: List[BigipTask] = []
+    for task_name in task_names:
+        tasks.append(BigipTask(exec_function=fake_task, name=task_name))
+
+    def fake_get_workflow(_: Any) -> List[BigipTask]:
+        return tasks
+
+    monkeypatch.setattr(BigipDeployer, "get_workflow", fake_get_workflow)
+    args: argparse.Namespace = argparse.Namespace(
+        cert_name=None,
+        dest_dir_path=None,
+        dry_run=True,
+        host="somewhere.domain.tld",
+        profile_name=None,
+        profile_type=None,
+        renewed_lineage=bigip_certificate_bundle.path,
+        sync_group=None,
+    )
+    BigipDeployer.entrypoint(args=args, certificate_bundle=bigip_certificate_bundle)
+
+    assert run_count == 0
+    stdout: str = capsys.readouterr().out
+    for task_name in task_names:
+        assert task_name in stdout
+    print(stdout)
 
 
 def test_main_delegation(monkeypatch: pytest.MonkeyPatch) -> None:
