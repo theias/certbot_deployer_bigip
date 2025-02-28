@@ -148,7 +148,6 @@ def fixture_deployer_base_with_expected_tasks(
     """
     deployer = bigip_deployer_base
     tasks: List[BigipTask] = [
-        BigipTask(exec_function=deployer.verify_sync),
         BigipTask(
             exec_function=deployer.put_bigip_file,
             exec_kwargs={"component": deployer.certificate_bundle.fullchain},
@@ -220,7 +219,7 @@ def fixture_deployer_with_sync_group_and_expected_tasks(
     """
     Extend the base BigipDeployer with synchronization group configuration.
 
-    This fixture sets a sync group for the deployer and appends the sync task
+    This fixture sets a sync group for the deployer and adds sync-related tasks
     to the expected workflow.
 
     Returns:
@@ -231,12 +230,50 @@ def fixture_deployer_with_sync_group_and_expected_tasks(
     deployer: BigipDeployer
     tasks: List[BigipTask]
     deployer, tasks = deployer_base_with_expected_tasks
-    tasks.append(
-        BigipTask(
-            exec_function=deployer.sync,
-        )
+    tasks.insert(
+        0,
+        BigipTask(exec_function=deployer.verify_sync),
+    )
+    tasks.extend(
+        [
+            BigipTask(
+                exec_function=deployer.sync,
+            ),
+        ]
     )
     deployer.sync_group = "mysyncgroup"
+    return (deployer, tasks)
+
+
+@pytest.fixture(
+    name="deployer_with_sync_group_and_profile_and_expected_tasks", scope="function"
+)
+def fixture_deployer_with_sync_group_and_profile_and_expected_tasks(
+    deployer_with_sync_group_and_expected_tasks: Tuple[BigipDeployer, List[BigipTask]],
+) -> Tuple[BigipDeployer, List[BigipTask]]:
+    """
+    Extend the base BigipDeployer with synchronization group configuration AND
+    profile configuration.
+
+    This fixture sets a sync group and profile for the deployer and appends the
+    sync task to the expected workflow.
+
+    Returns:
+        Tuple[BigipDeployer, List[BigipTask]]: A tuple containing the
+        BigipDeployer instance with a configured sync group and profile and the updated
+        task list.
+    """
+    deployer: BigipDeployer
+    tasks: List[BigipTask]
+    deployer, tasks = deployer_with_sync_group_and_expected_tasks
+    deployer.profile = TEST_PROFILE
+    tasks.insert(
+        len(tasks) - 1,
+        BigipTask(
+            exec_function=deployer.manage_profile,
+            exec_kwargs={"component": deployer.certificate_bundle.fullchain},
+        ),
+    )
     return (deployer, tasks)
 
 
@@ -295,6 +332,7 @@ def test_static_argparse_post() -> None:
         "deployer_base_with_expected_tasks",
         "deployer_with_profile_and_expected_tasks",
         "deployer_with_sync_group_and_expected_tasks",
+        "deployer_with_sync_group_and_profile_and_expected_tasks",
     ],
     indirect=True,
 )

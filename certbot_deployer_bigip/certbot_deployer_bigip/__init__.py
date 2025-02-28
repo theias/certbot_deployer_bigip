@@ -358,49 +358,53 @@ class BigipDeployer(Deployer):
         """
         Return workflow for this deployer
         """
-        tasks: List[BigipTask] = [
-            BigipTask(name="Verify Sync", exec_function=self.verify_sync),
-            BigipTask(
-                name="Put cert file to remote",
-                exec_function=self.put_bigip_file,
-                exec_kwargs={"component": self.certificate_bundle.fullchain},
-            ),
-            BigipTask(
-                name="Install cert",
-                exec_function=self.install_cert,
-                exec_kwargs={"component": self.certificate_bundle.fullchain},
-            ),
-            BigipTask(
-                name="Verify cert installed",
-                exec_function=self.verify_cert_installed,
-                exec_kwargs={"component": self.certificate_bundle.fullchain},
-            ),
-            BigipTask(
-                name="Put key file to remote",
-                exec_function=self.put_bigip_file,
-                exec_kwargs={"component": self.certificate_bundle.key},
-            ),
-            BigipTask(
-                name="Install key",
-                exec_function=self.install_cert,
-                exec_kwargs={"component": self.certificate_bundle.key},
-            ),
-            BigipTask(
-                name="Verify key installed",
-                exec_function=self.verify_cert_installed,
-                exec_kwargs={"component": self.certificate_bundle.key},
-            ),
-            BigipTask(
-                name="Zero out cert file on remote",
-                exec_function=self.zero_bigip_file,
-                exec_kwargs={"component": self.certificate_bundle.fullchain},
-            ),
-            BigipTask(
-                name="Zero out key file on remote",
-                exec_function=self.zero_bigip_file,
-                exec_kwargs={"component": self.certificate_bundle.key},
-            ),
-        ]
+        tasks: List[BigipTask] = []
+        if self.sync_group is not None:
+            tasks.append(BigipTask(name="Verify Sync", exec_function=self.verify_sync))
+        tasks.extend(
+            [
+                BigipTask(
+                    name="Put cert file to remote",
+                    exec_function=self.put_bigip_file,
+                    exec_kwargs={"component": self.certificate_bundle.fullchain},
+                ),
+                BigipTask(
+                    name="Install cert",
+                    exec_function=self.install_cert,
+                    exec_kwargs={"component": self.certificate_bundle.fullchain},
+                ),
+                BigipTask(
+                    name="Verify cert installed",
+                    exec_function=self.verify_cert_installed,
+                    exec_kwargs={"component": self.certificate_bundle.fullchain},
+                ),
+                BigipTask(
+                    name="Put key file to remote",
+                    exec_function=self.put_bigip_file,
+                    exec_kwargs={"component": self.certificate_bundle.key},
+                ),
+                BigipTask(
+                    name="Install key",
+                    exec_function=self.install_cert,
+                    exec_kwargs={"component": self.certificate_bundle.key},
+                ),
+                BigipTask(
+                    name="Verify key installed",
+                    exec_function=self.verify_cert_installed,
+                    exec_kwargs={"component": self.certificate_bundle.key},
+                ),
+                BigipTask(
+                    name="Zero out cert file on remote",
+                    exec_function=self.zero_bigip_file,
+                    exec_kwargs={"component": self.certificate_bundle.fullchain},
+                ),
+                BigipTask(
+                    name="Zero out key file on remote",
+                    exec_function=self.zero_bigip_file,
+                    exec_kwargs={"component": self.certificate_bundle.key},
+                ),
+            ]
+        )
         if self.profile is not None:
             tasks.append(
                 BigipTask(
