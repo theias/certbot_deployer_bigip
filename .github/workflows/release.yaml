@@ -1,17 +1,21 @@
 ---
-name: Test
+
+name: Test and Publish release
 
 on:  # yamllint disable-line rule:truthy
   push:
-    branch: ['*']
+    tags: ["v*"]
   workflow_dispatch:
 
 permissions:
   contents: read
+  id-token: write
 
 jobs:
-  test:
+  release:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -26,5 +30,10 @@ jobs:
           key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements*.txt') }}
           restore-keys: |
             ${{ runner.os }}-pip-
-      - name: Run tests with 'make all'
-        run: make all
+      - name: Build package
+        run: make package
+      - name: Publish release
+        uses: ncipollo/release-action@v1
+        with:
+          artifacts: "release/*whl,release/*gz"
+          bodyFile: "release.meta/CHANGELOG.md"
