@@ -4,6 +4,9 @@ STATIC_PYLINT := venv/pylint.timestamp
 STATIC_BLACK := venv/black.timestamp
 STATIC_MYPY := venv/mypy.timestamp
 PYTHON_FILES := $(shell find . -path ./venv -prune -o -name '*.py' -print)
+TEST_DIR_FILES := $(shell find ./tests -print)
+TEST := venv/test.timestamp
+TEST_VERBOSE := venv/test_verbose.timestamp
 PACKAGE := certbot_deployer_bigip
 VENV := venv/venv.timestamp
 VERSION := $(shell python3 -c 'meta_namespace = {}; f = open("certbot_deployer_bigip/meta.py", "r", encoding="utf-8"); exec(f.read(), meta_namespace); f.close(); print(meta_namespace.get("__version__"))')
@@ -44,12 +47,17 @@ static-analysis: $(DEPENDENCIES) $(STATIC_PYLINT) $(STATIC_MYPY) $(STATIC_BLACK)
 	# Hooray all good
 
 .PHONY: test
-test: $(DEPENDENCIES)
+test: $(TEST)
+$(TEST): $(DEPENDENCIES) $(PYTHON_FILES) $(TEST_DIR_FILES)
 	./venv/bin/pytest tests/
-
+	@touch $(TEST)
+	@touch $(TEST_VERBOSE)
 .PHONY: test-verbose
-test-verbose: $(DEPENDENCIES)
+test-verbose: $(TEST_VERBOSE)
+$(TEST_VERBOSE): $(DEPENDENCIES) $(PYTHON_FILES) $(TEST_DIR_FILES)
 	./venv/bin/pytest  -rP -o log_cli=true --log-cli-level=10 tests/
+	@touch $(TEST)
+	@touch $(TEST_VERBOSE)
 
 .PHONY: hooks
 hooks:
