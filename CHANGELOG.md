@@ -5,6 +5,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## Unreleased
 
+## 0.2.0 - 2025-02-28
+### Added
+- Add examples to help output
+- Add a `--dry-run` option to just print the tasks it would have done
+
 ## 0.1.0 - 2025-02-26
 ### Changed
 - prep for release
