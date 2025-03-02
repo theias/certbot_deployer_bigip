@@ -11,7 +11,6 @@ This tool runs as a [Certbot] "deploy hook", and uploads and installs Certbot ce
 
 * Python 3.9+
 * `scp` in $PATH
-* `ssh` in $PATH
 * <details>
     <summary>Compatible BIG-IP software version</summary>
 
