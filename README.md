@@ -61,6 +61,37 @@ pip install certbot_deployer_bigip
 
 # Usage
 
+
+## Examples
+
+All examples assume the tool is being run as a Certbot deploy hook, and the environment variable `RENEWED_LINEAGE` points to the live certificate directory just updated by Certbot.
+
+### Install certificate on the BIG-IP device named with its expiry timestamp as `host.domain.tld.YYY-MM-DDTHH:MM:SS` (the default)
+
+```
+certbot-deployer bigip --host bigip.domain.tld
+```
+
+### Install certificate on the BIG-IP device and then synchronize device changes to a device group
+
+```
+certbot-deployer bigip --host bigip.domain.tld --sync-group yoursyncgroup
+```
+
+### Install certificate on the BIG-IP device and then associate it with a client-ssl profile. If the profile does not exist, it will be created.
+
+```
+certbot-deployer bigip --host bigip.domain.tld --profile-name yourprofile --profile-type client-ssl
+```
+
+### Print out the deployment tasks that would be taken, but do not run them
+
+```
+certbot-deployer bigip --host bigip.domain.tld --dry-run
+```
+
+## Reference
+
 ```
 usage: certbot-deployer bigip [-h] --host HOST [--dest-temp-dir DEST_DIR_PATH]
                               [--cert-name CERT_NAME]
@@ -105,32 +136,6 @@ options:
                         sync the BIG-IP node if this argument is not given
   --dry-run, -d         Report the workflow steps that would run without
                         actually running them
-
-Examples:
-
-All examples assume the tool is being run as a Certbot deploy hook, and
-the environment variable `RENEWED_LINEAGE` points to the live
-certificate directory just updated by Certbot.
-
-    # Install certificate on the BIG-IP device named with its expiry timestamp
-    # as `host.domain.tld.YYY-MM-DDTHH:MM:SS` (the default)
-
-    certbot-deployer bigip --host bigip.domain.tld
-
-    # Install certificate on the BIG-IP device and then synchronize
-    # device changes to a device group
-
-    certbot-deployer bigip --host bigip.domain.tld --sync-group yoursyncgroup
-
-    # Install certificate on the BIG-IP device and then associate it
-    # with a client-ssl profile. If the profile does not exist, it will be created.
-
-    certbot-deployer bigip --host bigip.domain.tld --profile-name yourprofile \
-        --profile-type client-ssl
-
-    # Print out the deployment tasks that would be taken, but do not run them
-
-    certbot-deployer bigip --host bigip.domain.tld --dry-run
 ```
 
 # Limitations
