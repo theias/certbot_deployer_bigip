@@ -42,11 +42,14 @@ BIGIP_FINGERPRINT_ALGO_FUNC: Callable = hashes.SHA256
 def scp(host: str, localpath: str, remotepath: str) -> None:
     """
     Send a file via external commands `scp`
+
+    We do this with `subprocess` instead of Fabric (with Paramiko under the
+    hood) because Paramiko only supports "SCP" via SFTP, and BIG-IP devices
+    only support "actual" SCP
     """
     cmd: List[str]
     try:
         # `openssh-client >v9.0 defaults to SFTP instead of actual SCP
-        # and the BIG-IP only supports SCP
         # So first pass `-O` to try to use SCP instead of SFTP as it is
         # a very quick fail if the option is not present
         cmd = [
