@@ -638,7 +638,7 @@ class BigipDeployer(Deployer):
         )
         workflow = deployer.get_workflow()
         if args.dry_run:
-            logging.warning("In dry run mode. Will not run actual deployment tasks.")
+            print("# Running in dry run mode. Will not run actual deployment tasks.")
         for task in workflow:
             if args.dry_run:
                 print(f"Would run task: {task.name}")

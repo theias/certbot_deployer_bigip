@@ -5,6 +5,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## Unreleased
 
+### Changed
+- Switch dry run intro message from stderr to stdout
+
 ## 0.2.2 - 2025-03-02
 ### Fixed
 - Fix bad `description` in setup
