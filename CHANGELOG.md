@@ -5,6 +5,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## Unreleased
 
+## 0.3.1 - 2025-03-07
+### Fixed
+- Fix broken command in `save` workflow step
+
 ## 0.3.0 - 2025-03-07
 ### Changed
 - Switch dry run intro message from stderr to stdout

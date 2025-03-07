@@ -611,7 +611,7 @@ class BigipDeployer(Deployer):
         Save new running config to disk (`bigip.conf`)
         """
         try:
-            cmd: str = "tmsh save /sys config"
+            cmd: str = "save /sys config"
             logging.debug("`%s`", cmd)
             self.conn.run(cmd)
         except UnexpectedExit as err:
