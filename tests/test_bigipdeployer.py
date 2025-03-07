@@ -180,6 +180,9 @@ def fixture_deployer_base_with_expected_tasks(
             exec_function=deployer.zero_bigip_file,
             exec_kwargs={"component": deployer.certificate_bundle.key},
         ),
+        BigipTask(
+            exec_function=deployer.save,
+        ),
     ]
     return (deployer, tasks)
 
@@ -700,6 +703,7 @@ def test_static_entrypoint(
         profile_type=None,
         renewed_lineage=bigip_certificate_bundle.path,
         sync_group=None,
+        user=None,
     )
     BigipDeployer.entrypoint(args=args, certificate_bundle=bigip_certificate_bundle)
     assert run_count == len(tasks)
@@ -740,6 +744,7 @@ def test_dry_run(
         profile_type=None,
         renewed_lineage=bigip_certificate_bundle.path,
         sync_group=None,
+        user=None,
     )
     BigipDeployer.entrypoint(args=args, certificate_bundle=bigip_certificate_bundle)
 

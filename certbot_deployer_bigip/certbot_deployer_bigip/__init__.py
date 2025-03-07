@@ -62,6 +62,7 @@ def scp(host: str, localpath: str, remotepath: str) -> None:
         logging.debug(cmd)
         subprocess.run(
             cmd,
+            capture_output=True,
             check=True,
         )
     except subprocess.CalledProcessError:
@@ -76,6 +77,7 @@ def scp(host: str, localpath: str, remotepath: str) -> None:
         try:
             subprocess.run(
                 cmd,
+                capture_output=True,
                 check=True,
             )
         except subprocess.CalledProcessError as err:
@@ -403,6 +405,10 @@ class BigipDeployer(Deployer):
                     exec_function=self.zero_bigip_file,
                     exec_kwargs={"component": self.certificate_bundle.key},
                 ),
+                BigipTask(
+                    name="Save running config to disk",
+                    exec_function=self.save,
+                ),
             ]
         )
         if self.profile is not None:
@@ -598,6 +604,18 @@ class BigipDeployer(Deployer):
                     "Unexpected failure when trying to update the profile "
                     f"`{self.profile.name}` to use the new cert"
                 ) from err
+
+    # pylint: disable-next=unused-argument
+    def save(self, *args: Any, **kwargs: Any) -> None:
+        """
+        Save new running config to disk (`bigip.conf`)
+        """
+        try:
+            cmd: str = "tmsh save /sys config"
+            logging.debug("`%s`", cmd)
+            self.conn.run(cmd)
+        except UnexpectedExit as err:
+            raise RuntimeError("Failed to save running config to disk") from err
 
     # pylint: disable-next=unused-argument
     def sync(self, *args: Any, **kwargs: Any) -> None:

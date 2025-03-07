@@ -5,8 +5,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## Unreleased
 
+## 0.3.0 - 2025-03-07
 ### Changed
 - Switch dry run intro message from stderr to stdout
+
+### Added
+- Add a new workflow step to save running config before optional sync
 
 ## 0.2.2 - 2025-03-02
 ### Fixed

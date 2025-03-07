@@ -33,6 +33,8 @@ def test_scp_lt90(monkeypatch: pytest.MonkeyPatch) -> None:
     def scp_fail_dash_o(
         cmd: List[str],
         # pylint: disable-next=unused-argument
+        capture_output: bool = True,
+        # pylint: disable-next=unused-argument
         check: bool = True,
     ) -> subprocess.CompletedProcess:
         """
@@ -66,6 +68,8 @@ def test_scp_gt90(monkeypatch: pytest.MonkeyPatch) -> None:
     def scp_succeed_dash_o(
         cmd: List[str],
         # pylint: disable-next=unused-argument
+        capture_output: bool = True,
+        # pylint: disable-next=unused-argument
         check: bool = True,
     ) -> subprocess.CompletedProcess:
         nonlocal called
@@ -90,6 +94,8 @@ def test_scp_raises_on_fail(monkeypatch: pytest.MonkeyPatch) -> None:
 
     def scp_always_fail(
         cmd: List[str],
+        # pylint: disable-next=unused-argument
+        capture_output: bool = True,
         # pylint: disable-next=unused-argument
         check: bool = True,
     ) -> subprocess.CompletedProcess:
