@@ -223,7 +223,6 @@ class BigipDeployer(Deployer):
             "-H",
             default=os.environ.get("HOST", None),
             help=("BIG-IP host to target with changes."),
-            required=True,
             type=str,
         )
 
@@ -307,10 +306,16 @@ class BigipDeployer(Deployer):
         """
         Checks for after arguments are otherwise fully processed
         """
-        if [args.profile_name, args.profile_type].count(None) == 1:
+        args_vars: Dict[str, Any] = vars(args)
+        if [
+            args_vars.get("profile_name"),
+            args_vars.get("profile_type"),
+        ].count(None) == 1:
             raise argparse.ArgumentTypeError(
                 "If either `--profile` or `--profile-type` are passed, both are required."
             )
+        if not args_vars.get("host"):
+            raise argparse.ArgumentTypeError("`--host/H is required")
 
     def get_workflow(self) -> List[BigipTask]:
         """

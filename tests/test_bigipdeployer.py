@@ -314,16 +314,25 @@ def test_static_argparse_post() -> None:
           following arguments is provided: profile or profile_type.
         - No exception is raised if both are provided or if neither is provided.
     """
-    # Raise when only one given
     args: argparse.Namespace
-    args = argparse.Namespace(profile_name="val", profile_type=None)
+
+    # Verify `--host` is "required" by validation in post
+    args = argparse.Namespace()
+    with pytest.raises(argparse.ArgumentTypeError):
+        BigipDeployer.argparse_post(args=args)
+
+    # Raise when only one of `profile_name` and `profile_type` given
+    args = argparse.Namespace(host="val", profile_name=None, profile_type="val")
+    with pytest.raises(argparse.ArgumentTypeError):
+        BigipDeployer.argparse_post(args=args)
+    args = argparse.Namespace(host="val", profile_name="val", profile_type=None)
     with pytest.raises(argparse.ArgumentTypeError):
         BigipDeployer.argparse_post(args=args)
 
     # Succeed otherwise
-    args = argparse.Namespace(profile_name="val", profile_type="val")
+    args = argparse.Namespace(host="val", profile_name="val", profile_type="val")
     BigipDeployer.argparse_post(args=args)
-    args = argparse.Namespace(profile_name=None, profile_type=None)
+    args = argparse.Namespace(host="val", profile_name=None, profile_type=None)
     BigipDeployer.argparse_post(args=args)
 
 
