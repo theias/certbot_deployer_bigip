@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Any, List, Optional, Tuple, Type
 
 import pytest
+import scp as paramiko_scp  # type: ignore
 
 from invoke.exceptions import UnexpectedExit
 from invoke.runners import Result
@@ -32,12 +33,11 @@ from certbot_deployer_bigip.certbot_deployer_bigip import (
     CertProfile,
 )
 
-# from certbot_deployer_bigip import ma.certbot_deployer_bigipin
-import certbot_deployer_bigip.certbot_deployer_bigip
 
+HOST: str = "something.domain.tld"
 KEY: str = "key"
-TEST_SYNC_GROUP: str = "test_sync_group"
 TEST_PROFILE: CertProfile = CertProfile(name="test_profile", type="client-ssl")
+TEST_SYNC_GROUP: str = "test_sync_group"
 
 
 @pytest.fixture(name="bigip_certificate_bundle", scope="function")
@@ -84,7 +84,7 @@ def fixture_bigip_deployer(
     but without a sync group or profile for simplicity.
     """
     deployer: BigipDeployer = BigipDeployer(
-        host="host.domain.tld",
+        host=HOST,
         dest_dir_path="/remote/path/",
         certificate_bundle=bigip_certificate_bundle,
         sync_group=None,
@@ -103,7 +103,7 @@ def fixture_bigip_deployer_with_profile(
     A sample CertProfile object (`TEST_PROFILE`) is assigned to the deployer.
     """
     deployer: BigipDeployer = BigipDeployer(
-        host="host.domain.tld",
+        host=HOST,
         dest_dir_path="/remote/path/",
         certificate_bundle=bigip_certificate_bundle,
         sync_group=None,
@@ -122,7 +122,7 @@ def fixture_bigip_deployer_with_sync_group(
     A sample sync group (`TEST_SYNC_GROUP`) is assigned to the deployer.
     """
     deployer: BigipDeployer = BigipDeployer(
-        host="host.domain.tld",
+        host=HOST,
         dest_dir_path="/remote/path/",
         certificate_bundle=bigip_certificate_bundle,
         sync_group=TEST_SYNC_GROUP,
@@ -338,6 +338,12 @@ def test_static_argparse_post() -> None:
         "deployer_with_sync_group_and_profile_and_expected_tasks",
     ],
     indirect=True,
+    ids=[
+        "deployer_base_with_expected_tasks",
+        "deployer_with_profile_and_expected_tasks",
+        "deployer_with_sync_group_and_expected_tasks",
+        "deployer_with_sync_group_and_profile_and_expected_tasks",
+    ],
 )
 def test_workflow(
     deployer_and_expected_tasks: Tuple[BigipDeployer, List[BigipTask]],
@@ -397,21 +403,91 @@ def test_put_file(
     Test deploying files to the remote BIG-IP via scp.
     """
     bigip_deployer = bigip_deployer_base
-    calls: List[Tuple[str, str, str]] = []
+    calls: List[Tuple[str, str]] = []
 
-    def fake_scp(host: str, localpath: str, remotepath: str) -> None:
+    def fake_scp(localpath: str, remotepath: str) -> None:
         nonlocal calls
-        calls.append((host, localpath, remotepath))
+        calls.append((localpath, remotepath))
 
-    monkeypatch.setattr(certbot_deployer_bigip.certbot_deployer_bigip, "scp", fake_scp)
+    monkeypatch.setattr(bigip_deployer, "_scp", fake_scp)
     component: CertificateComponent = bigip_deployer.certificate_bundle.cert
     bigip_deployer.put_bigip_file(component=component)
     assert len(calls) == 1
     assert calls[0] == (
-        bigip_deployer.host,
         component.path,
         posixpath.join(bigip_deployer.dest_dir_path, component.filename),
     )
+
+
+@pytest.mark.parametrize(
+    "transport_ready",
+    [
+        True,
+        False,
+    ],
+    ids=[
+        "Transport not created yet before `_scp` is called",
+        "Transport already created before `_scp` is called",
+    ],
+)
+def test_scp(
+    monkeypatch: pytest.MonkeyPatch,
+    bigip_deployer_base: BigipDeployer,
+    transport_ready: bool,
+) -> None:
+    """
+    Mock the paramiko scp and ensure our scp method tries to
+    upload the right files to the right host
+
+    additionally verify that the connection transport is opened when transport
+    is not ready
+    """
+    bigip_deployer = bigip_deployer_base
+    localfile: str = "LOCALFILE"
+    remotefile: str = "REMOTEFILE"
+    put_count: int = 0
+    transport_open_count: int = 0
+
+    monkeypatch.setattr(bigip_deployer.conn, "transport", transport_ready)
+
+    def mock_conn_open() -> None:
+        nonlocal transport_open_count
+        transport_open_count += 1
+
+    # pylint: disable=missing-function-docstring
+    # pylint: disable=missing-class-docstring
+    # pylint: disable=too-few-public-methods
+    class MockSCPClient:
+        def __init__(self, transport: str) -> None:
+            pass
+
+        # pylint: disable-next=unused-argument
+        def put(self, localpath: str, remotepath: str) -> None:
+            nonlocal put_count
+            put_count += 1
+            assert localpath == localfile
+            assert remotepath == remotefile
+
+        def close(self) -> None:
+            pass
+
+    # pylint: enable=too-few-public-methods
+    # pylint: enable=missing-class-docstring
+    # pylint: enable=missing-function-docstring
+
+    monkeypatch.setattr(paramiko_scp, "SCPClient", MockSCPClient)
+    monkeypatch.setattr(bigip_deployer.conn, "open", mock_conn_open)
+    # pylint: disable-next=protected-access
+    bigip_deployer._scp(localfile, remotefile)
+    assert put_count == 1
+    if not transport_ready:
+        assert (
+            transport_open_count == 1
+        ), "Connection was not yet opened and should have been opened before doing SCP"
+    else:
+        assert (
+            transport_open_count == 0
+        ), "Connection was already opened and should not have been opened before doing SCP"
 
 
 @pytest.mark.parametrize(
@@ -422,6 +498,11 @@ def test_put_file(
         (CERT, CERT),
         (FULLCHAIN, CERT),
         (KEY, KEY),
+    ],
+    ids=[
+        "Install CERT as a certificate",
+        "Install FULLCHAIN as a certificate",
+        "Install KEY as a key",
     ],
 )
 def test_install_cert(
@@ -469,6 +550,11 @@ def test_install_cert(
         (CERT, CERT),
         (FULLCHAIN, CERT),
         (KEY, KEY),
+    ],
+    ids=[
+        "Verify CERT as a certificate",
+        "Verify FULLCHAIN as a certificate",
+        "Verify KEY as a key",
     ],
 )
 def test_verify_cert_installed(
@@ -531,23 +617,21 @@ def test_zero_file(
     Test deploying empty files to the remote BIG-IP via scp.
     """
     bigip_deployer = bigip_deployer_base
-    calls: List[Tuple[str, str, str]] = []
+    calls: List[Tuple[str, str]] = []
 
-    def fake_scp(host: str, localpath: str, remotepath: str) -> None:
+    def fake_scp(localpath: str, remotepath: str) -> None:
         assert os.path.getsize(localpath) == 0
         nonlocal calls
-        calls.append((host, localpath, remotepath))
+        calls.append((localpath, remotepath))
 
-    monkeypatch.setattr(certbot_deployer_bigip.certbot_deployer_bigip, "scp", fake_scp)
+    monkeypatch.setattr(bigip_deployer, "_scp", fake_scp)
 
     component: CertificateComponent = bigip_deployer.certificate_bundle.cert
     bigip_deployer.zero_bigip_file(component=component)
     assert len(calls) == 1
-    call: Tuple[str, str, str] = calls[0]
-    called_host: str
+    call: Tuple[str, str] = calls[0]
     called_remote_filepath: str
-    called_host, _, called_remote_filepath = call
-    assert called_host == bigip_deployer.host
+    _, called_remote_filepath = call
     assert called_remote_filepath == posixpath.join(
         bigip_deployer.dest_dir_path, component.filename
     )

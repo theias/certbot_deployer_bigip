@@ -10,7 +10,8 @@ This tool runs as a [Certbot] "deploy hook", and uploads and installs Certbot ce
 # Requires
 
 * Python 3.9+
-* `scp` in $PATH
+* A local user on the target BIG-IP device with `Terminal Access` set to `tmsh`  (see [Users and SSH and shells](#users-and-ssh-and-shells))
+* SSH configured to connect as the local BIG-IP user (see [Users and SSH and shells](#users-and-ssh-and-shells))
 * <details>
     <summary>Compatible BIG-IP software version</summary>
 
@@ -61,7 +62,6 @@ pip install certbot_deployer_bigip
 
 # Usage
 
-
 ## Examples
 
 All examples assume the tool is being run as a Certbot deploy hook, and the environment variable `RENEWED_LINEAGE` points to the live certificate directory just updated by Certbot.
@@ -88,6 +88,35 @@ certbot-deployer bigip --host bigip.domain.tld --profile-name yourprofile --prof
 
 ```
 certbot-deployer bigip --host bigip.domain.tld --dry-run
+```
+
+## Users and SSH and shells
+
+This tool runs all of its tasks on the target devices via SSH.
+
+It expects:
+
+* the local user on the BIG-IP to have `Terminal Access` set to `tmsh` and with appropriate permissions
+* a working SSH configuration to connect to the target devices
+
+### BIG-IP user permissions
+
+The local user on the target BIG-IP device must be granted at least the `Certificate Manager` role in order to deploy certificates.
+
+In order to also create/update the associated profiles on the BIG-IP, the user will require the `Administrator` role.
+
+### SSH
+
+Configuration for the SSH connection can be done via the configuration of the user running the tool.
+
+E.g.:
+
+```
+# /home/user/.ssh/config
+Host bigip-device.domain.tld
+    User certbot_deploy
+    Identityfile /home/user/.ssh/id_rsa
+    Port 2022
 ```
 
 ## Reference

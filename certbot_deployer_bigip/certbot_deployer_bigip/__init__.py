@@ -19,6 +19,9 @@ import warnings
 from collections import namedtuple
 from typing import Any, Callable, ClassVar, Dict, Iterable, List, Optional
 
+import paramiko  # type: ignore
+import scp as paramiko_scp  # type: ignore
+
 # Suppress warnings thanks to old Python and fabric
 # pylint: disable-next=duplicate-code
 with warnings.catch_warnings():
@@ -37,53 +40,6 @@ from certbot_deployer_bigip.meta import __description__
 
 BIGIP_FINGERPRINT_ALGO: str = "SHA256"
 BIGIP_FINGERPRINT_ALGO_FUNC: Callable = hashes.SHA256
-
-
-def scp(host: str, localpath: str, remotepath: str) -> None:
-    """
-    Send a file via external commands `scp`
-
-    We do this with `subprocess` instead of Fabric (with Paramiko under the
-    hood) because Paramiko only supports "SCP" via SFTP, and BIG-IP devices
-    only support "actual" SCP
-    """
-    cmd: List[str]
-    try:
-        # `openssh-client >v9.0 defaults to SFTP instead of actual SCP
-        # So first pass `-O` to try to use SCP instead of SFTP as it is
-        # a very quick fail if the option is not present
-        cmd = [
-            "scp",
-            "-O",
-            localpath,
-            f"{host}:{remotepath}",
-        ]
-        logging.debug("Trying `scp` with `-O` option to force SCP instead of SFTP...")
-        logging.debug(cmd)
-        subprocess.run(
-            cmd,
-            capture_output=True,
-            check=True,
-        )
-    except subprocess.CalledProcessError:
-        # And if it fails this first attempt, assume it is due to the `-O`
-        # option being unavailable
-        logging.debug(
-            "The available version of `scp` appears not to support the `-O` "
-            "option, falling back..."
-        )
-        cmd = ["scp", localpath, f"{host}:{remotepath}"]
-        logging.debug(cmd)
-        try:
-            subprocess.run(
-                cmd,
-                capture_output=True,
-                check=True,
-            )
-        except subprocess.CalledProcessError as err:
-            raise RuntimeError(
-                f"Failed to copy `{localpath}` to remote path `{remotepath}`"
-            ) from err
 
 
 CertProfile = namedtuple("CertProfile", "name type")
@@ -451,6 +407,33 @@ class BigipDeployer(Deployer):
                 "Failed checking sync status. Aborting all further operations."
             ) from err
 
+    def _scp(self, localpath: str, remotepath: str) -> None:
+        """
+        Send a file via SCP.
+
+        In general these days, SCP tools actually use the SFTP protocol. This
+        includes the Fabric module on which we rely for running remote
+        commands.
+
+        For our target F5 BIG-IP devices, the opposite is true - *only* the SCP
+        protocol (such as it is) is supported for `tmsh` users:
+
+        https://my.f5.com/manage/s/article/K22885182
+
+        So this method utilizes the separate `scp` module to implement the SCP
+        protocol which requires a tiny bit of extra handling.
+        """
+        if not self.conn.transport:
+            # The connection "transport," which we need for our scp client, may
+            # not exist yet if no commands have yet run over than connection
+            self.conn.open()
+        # Avoiding `with ..as` here because though it would be more elegant, it
+        # would make testing a bit more complex, requiring it to implement a
+        # context manager and meh let's not
+        scp_client = paramiko_scp.SCPClient(self.conn.transport)
+        scp_client.put(localpath, remotepath)
+        scp_client.close()
+
     def put_bigip_file(
         # pylint: disable-next=unused-argument
         self,
@@ -467,8 +450,7 @@ class BigipDeployer(Deployer):
             component.path,
             self.dest_dir_path,
         )
-        scp(
-            host=self.host,
+        self._scp(
             localpath=component.path,
             remotepath=posixpath.join(self.dest_dir_path, component.filename),
         )
@@ -556,8 +538,7 @@ class BigipDeployer(Deployer):
                 emptyfile.name,
                 remote_filepath,
             )
-            scp(
-                host=self.host,
+            self._scp(
                 localpath=emptyfile.name,
                 remotepath=remote_filepath,
             )
