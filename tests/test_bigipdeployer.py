@@ -85,7 +85,7 @@ def fixture_bigip_deployer(
     """
     deployer: BigipDeployer = BigipDeployer(
         host=HOST,
-        dest_dir_path="/remote/path/",
+        dest_temp_dir="/remote/path/",
         certificate_bundle=bigip_certificate_bundle,
         sync_group=None,
         profile=None,
@@ -104,7 +104,7 @@ def fixture_bigip_deployer_with_profile(
     """
     deployer: BigipDeployer = BigipDeployer(
         host=HOST,
-        dest_dir_path="/remote/path/",
+        dest_temp_dir="/remote/path/",
         certificate_bundle=bigip_certificate_bundle,
         sync_group=None,
         profile=TEST_PROFILE,
@@ -123,7 +123,7 @@ def fixture_bigip_deployer_with_sync_group(
     """
     deployer: BigipDeployer = BigipDeployer(
         host=HOST,
-        dest_dir_path="/remote/path/",
+        dest_temp_dir="/remote/path/",
         certificate_bundle=bigip_certificate_bundle,
         sync_group=TEST_SYNC_GROUP,
         profile=None,
@@ -424,7 +424,7 @@ def test_put_file(
     assert len(calls) == 1
     assert calls[0] == (
         component.path,
-        posixpath.join(bigip_deployer.dest_dir_path, component.filename),
+        posixpath.join(bigip_deployer.dest_temp_dir, component.filename),
     )
 
 
@@ -534,7 +534,7 @@ def test_install_cert(
     component: CertificateComponent = getattr(
         bigip_deployer.certificate_bundle, component_label
     )
-    remote_path: str = posixpath.join(bigip_deployer.dest_dir_path, component.filename)
+    remote_path: str = posixpath.join(bigip_deployer.dest_temp_dir, component.filename)
     expected_cmd: str = (
         f"install /sys crypto {bigip_cert_type} {bigip_deployer.certificate_bundle.name} "
         f"from-local-file {remote_path}"
@@ -642,7 +642,7 @@ def test_zero_file(
     called_remote_filepath: str
     _, called_remote_filepath = call
     assert called_remote_filepath == posixpath.join(
-        bigip_deployer.dest_dir_path, component.filename
+        bigip_deployer.dest_temp_dir, component.filename
     )
 
 
@@ -789,7 +789,7 @@ def test_static_entrypoint(
     monkeypatch.setattr(BigipDeployer, "get_workflow", fake_get_workflow)
     args: argparse.Namespace = argparse.Namespace(
         cert_name=None,
-        dest_dir_path=None,
+        dest_temp_dir=None,
         dry_run=False,
         host="somewhere.domain.tld",
         profile_name=None,
@@ -830,7 +830,7 @@ def test_dry_run(
     monkeypatch.setattr(BigipDeployer, "get_workflow", fake_get_workflow)
     args: argparse.Namespace = argparse.Namespace(
         cert_name=None,
-        dest_dir_path=None,
+        dest_temp_dir=None,
         dry_run=True,
         host="somewhere.domain.tld",
         profile_name=None,

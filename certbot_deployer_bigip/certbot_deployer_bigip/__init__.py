@@ -156,13 +156,13 @@ class BigipDeployer(Deployer):
         self,
         *,
         host: str,
-        dest_dir_path: str,
+        dest_temp_dir: str,
         certificate_bundle: BigipCertificateBundle,
         sync_group: Optional[str],
         profile: Optional[CertProfile],
     ) -> None:
         self.host: str = host
-        self.dest_dir_path: str = dest_dir_path
+        self.dest_temp_dir: str = dest_temp_dir
         self.sync_group: Optional[str] = sync_group
         self.certificate_bundle: BigipCertificateBundle = certificate_bundle
         self.profile: Optional[CertProfile] = profile
@@ -230,7 +230,6 @@ class BigipDeployer(Deployer):
             "--dest-temp-dir",
             "-t",
             default=os.environ.get("DEST_TEMP_DIR", "/var/tmp"),
-            dest="dest_dir_path",
             help=(
                 "The temp path on the BIG-IP to use when uploading the certificates for "
                 "installation. This tool will try to zero out the certificates at the end "
@@ -453,11 +452,11 @@ class BigipDeployer(Deployer):
             "Putting %s `%s` over scp to `%s`",
             component.label,
             component.path,
-            self.dest_dir_path,
+            self.dest_temp_dir,
         )
         self._scp(
             localpath=component.path,
-            remotepath=posixpath.join(self.dest_dir_path, component.filename),
+            remotepath=posixpath.join(self.dest_temp_dir, component.filename),
         )
 
     def install_cert(
@@ -473,7 +472,7 @@ class BigipDeployer(Deployer):
         Note that any cert, full-chain or leaf, is still given the type `cert`
         in the TMSH install command
         """
-        remote_filepath: str = posixpath.join(self.dest_dir_path, component.filename)
+        remote_filepath: str = posixpath.join(self.dest_temp_dir, component.filename)
         bigip_cert_type = "cert" if component.label in ["cert", "fullchain"] else "key"
         try:
             # Install the cert
@@ -536,7 +535,7 @@ class BigipDeployer(Deployer):
         "Wipe" file on remote by zeroing it out, for inability to just remove the
         file without admin
         """
-        remote_filepath: str = posixpath.join(self.dest_dir_path, component.filename)
+        remote_filepath: str = posixpath.join(self.dest_temp_dir, component.filename)
         with tempfile.NamedTemporaryFile(mode="r") as emptyfile:
             logging.info(
                 "Putting empty file `%s` to remote `%s` over scp...",
@@ -635,7 +634,7 @@ class BigipDeployer(Deployer):
 
         deployer: BigipDeployer = BigipDeployer(
             certificate_bundle=bigip_certificate_bundle,
-            dest_dir_path=args.dest_dir_path,
+            dest_temp_dir=args.dest_temp_dir,
             host=args.host,
             profile=profile,
             sync_group=args.sync_group,

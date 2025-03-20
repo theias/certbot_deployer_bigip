@@ -5,6 +5,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## Unreleased
 
+## 0.5.1 - 2025-03-20
+### Fixed
+- Bring all internal cli argument names into line with their user-facing names for ease of reference in configuration file
+
 ## 0.5.0 - 2025-03-20
 ### Fixed
 - Alter arg parsing to allow "required" arguments to come from the Certbot Deployer config file
