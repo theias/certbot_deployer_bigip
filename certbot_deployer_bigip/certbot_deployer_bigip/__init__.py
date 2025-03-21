@@ -327,21 +327,6 @@ class BigipDeployer(Deployer):
         tasks.extend(
             [
                 BigipTask(
-                    name="Put cert file to remote",
-                    exec_function=self.put_bigip_file,
-                    exec_kwargs={"component": self.certificate_bundle.fullchain},
-                ),
-                BigipTask(
-                    name="Install cert",
-                    exec_function=self.install_cert,
-                    exec_kwargs={"component": self.certificate_bundle.fullchain},
-                ),
-                BigipTask(
-                    name="Verify cert installed",
-                    exec_function=self.verify_cert_installed,
-                    exec_kwargs={"component": self.certificate_bundle.fullchain},
-                ),
-                BigipTask(
                     name="Put key file to remote",
                     exec_function=self.put_bigip_file,
                     exec_kwargs={"component": self.certificate_bundle.key},
@@ -355,6 +340,21 @@ class BigipDeployer(Deployer):
                     name="Verify key installed",
                     exec_function=self.verify_cert_installed,
                     exec_kwargs={"component": self.certificate_bundle.key},
+                ),
+                BigipTask(
+                    name="Put cert file to remote",
+                    exec_function=self.put_bigip_file,
+                    exec_kwargs={"component": self.certificate_bundle.fullchain},
+                ),
+                BigipTask(
+                    name="Install cert",
+                    exec_function=self.install_cert,
+                    exec_kwargs={"component": self.certificate_bundle.fullchain},
+                ),
+                BigipTask(
+                    name="Verify cert installed",
+                    exec_function=self.verify_cert_installed,
+                    exec_kwargs={"component": self.certificate_bundle.fullchain},
                 ),
                 BigipTask(
                     name="Zero out cert file on remote",

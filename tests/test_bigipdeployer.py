@@ -150,27 +150,27 @@ def fixture_deployer_base_with_expected_tasks(
     tasks: List[BigipTask] = [
         BigipTask(
             exec_function=deployer.put_bigip_file,
-            exec_kwargs={"component": deployer.certificate_bundle.fullchain},
+            exec_kwargs={"component": deployer.certificate_bundle.key},
         ),
         BigipTask(
             exec_function=deployer.install_cert,
-            exec_kwargs={"component": deployer.certificate_bundle.fullchain},
+            exec_kwargs={"component": deployer.certificate_bundle.key},
         ),
         BigipTask(
             exec_function=deployer.verify_cert_installed,
-            exec_kwargs={"component": deployer.certificate_bundle.fullchain},
+            exec_kwargs={"component": deployer.certificate_bundle.key},
         ),
         BigipTask(
             exec_function=deployer.put_bigip_file,
-            exec_kwargs={"component": deployer.certificate_bundle.key},
+            exec_kwargs={"component": deployer.certificate_bundle.fullchain},
         ),
         BigipTask(
             exec_function=deployer.install_cert,
-            exec_kwargs={"component": deployer.certificate_bundle.key},
+            exec_kwargs={"component": deployer.certificate_bundle.fullchain},
         ),
         BigipTask(
             exec_function=deployer.verify_cert_installed,
-            exec_kwargs={"component": deployer.certificate_bundle.key},
+            exec_kwargs={"component": deployer.certificate_bundle.fullchain},
         ),
         BigipTask(
             exec_function=deployer.zero_bigip_file,
