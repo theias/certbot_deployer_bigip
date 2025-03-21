@@ -36,7 +36,7 @@ from invoke.exceptions import UnexpectedExit
 
 from certbot_deployer import main as framework_main
 from certbot_deployer import Deployer, CertificateBundle, CertificateComponent
-from certbot_deployer_bigip.meta import __description__
+from certbot_deployer_bigip.meta import __description__, __version__
 
 BIGIP_FINGERPRINT_ALGO: str = "SHA256"
 BIGIP_FINGERPRINT_ALGO_FUNC: Callable = hashes.SHA256
@@ -150,6 +150,7 @@ class BigipDeployer(Deployer):
     """
 
     subcommand: ClassVar[str] = "bigip"
+    version: ClassVar[str] = __version__
 
     # pylint: disable-next=too-many-arguments
     def __init__(
