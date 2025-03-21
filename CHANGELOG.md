@@ -5,6 +5,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## Unreleased
 
+## 1.0.0 - 2025-03-21
+### Added
+- Add `version` classvar to BigipDeployer to support `--version` in `certbot-deployer`
+
+### Changed
+- Shift the order of operations so that the key is deployed before the certificate
+
 ## 0.5.1 - 2025-03-20
 ### Fixed
 - Bring all internal cli argument names into line with their user-facing names for ease of reference in configuration file

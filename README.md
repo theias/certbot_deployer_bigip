@@ -122,7 +122,8 @@ Host bigip-device.domain.tld
 ## Reference
 
 ```
-usage: certbot-deployer bigip [-h] --host HOST [--dest-temp-dir DEST_DIR_PATH]
+usage: certbot-deployer bigip [-h] [--host HOST]
+                              [--dest-temp-dir DEST_TEMP_DIR]
                               [--cert-name CERT_NAME]
                               [--profile-name PROFILE_NAME]
                               [--profile-type PROFILE_TYPE]
@@ -135,7 +136,7 @@ BIG-IP subcommand
 options:
   -h, --help            show this help message and exit
   --host HOST, -H HOST  BIG-IP host to target with changes.
-  --dest-temp-dir DEST_DIR_PATH, -t DEST_DIR_PATH
+  --dest-temp-dir DEST_TEMP_DIR, -t DEST_TEMP_DIR
                         The temp path on the BIG-IP to use when uploading the
                         certificates for installation. This tool will try to
                         zero out the certificates at the end of the run once
