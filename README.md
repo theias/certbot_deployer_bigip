@@ -168,6 +168,25 @@ options:
                         actually running them
 ```
 
+## Workflow
+
+An outline of the steps that this tool will take:
+
+1. (optionally) abort if sync status is not `In Sync`
+1. Upload the key
+1. Install the key
+1. Verify key installation
+1. Upload the certificate
+1. Install the certificate
+1. Verify certificate installation
+1. Zero out the uploaded key file now that it is installed (`tmsh` shell access does not allow deletion of files on disk)
+1. Zero out the uploaded certificate file now that it is installed (`tmsh` shell access does not allow deletion of files on disk)
+1. Save the running config
+1. (optionally) Create/modify a BIG-IP profile to use the new certificate and key
+1. (optionally) synchronize to BIG-IP sync-group
+
+Try the `--dry-run` option to have it list the steps that it would run for your specific configuration.
+
 # Limitations
 
 * "Rollbacks" are not yet implemented (and may not be) in the case of failure during deployment.
