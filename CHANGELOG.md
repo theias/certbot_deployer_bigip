@@ -5,6 +5,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## Unreleased
 
+## 1.0.1 - 2025-04-11
+### Fixed
+- Update certbot_deployer version
+
 ## 1.0.0 - 2025-03-21
 ### Added
 - Add `version` classvar to BigipDeployer to support `--version` in `certbot-deployer`
