@@ -6,6 +6,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ## Unreleased
 ### Changed
 - Remove args-from-ENV as this tool is intended to be launched directly by certbot which cannot be configured to take advantage of this
+- Remove `wheel` from `build-system.requires`
 
 ## 1.0.1 - 2025-04-11
 ### Fixed
