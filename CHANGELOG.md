@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
+### Changed
+- Remove args-from-ENV as this tool is intended to be launched directly by certbot which cannot be configured to take advantage of this
 
 ## 1.0.1 - 2025-04-11
 ### Fixed

@@ -222,15 +222,15 @@ class BigipDeployer(Deployer):
         parser.add_argument(
             "--host",
             "-H",
-            default=os.environ.get("HOST", None),
             help=("BIG-IP host to target with changes."),
+            required=True,
             type=str,
         )
 
         parser.add_argument(
             "--dest-temp-dir",
             "-t",
-            default=os.environ.get("DEST_TEMP_DIR", "/var/tmp"),
+            default="/var/tmp",
             help=(
                 "The temp path on the BIG-IP to use when uploading the certificates for "
                 "installation. This tool will try to zero out the certificates at the end "
