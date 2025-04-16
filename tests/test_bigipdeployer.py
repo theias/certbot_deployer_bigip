@@ -719,10 +719,11 @@ def test_manage_profile(
             )
         else:
             assert args == (
-                f"/ltm profile {bigip_deployer.profile.type} "
-                f"{bigip_deployer.profile.name} cert "
-                f"{bigip_deployer.certificate_bundle.name} key "
-                f"{bigip_deployer.certificate_bundle.name}"
+                f"/ltm profile {bigip_deployer.profile.type} {bigip_deployer.profile.name} "
+                "cert-key-chain replace-all-with { cert-key-chain { "
+                f"cert {bigip_deployer.certificate_bundle.name} key "
+                f"{bigip_deployer.certificate_bundle.name} "
+                "}}"
             )
 
 

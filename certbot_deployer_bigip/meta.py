@@ -3,7 +3,7 @@ Package metadata
 """
 
 __author__ = "IAS"
-__version__ = "1.0.1"
+__version__ = "1.0.2"
 __title__ = "certbot_deployer_bigip"
 __license__ = "License :: OSI Approved :: MIT License"
 __description__ = (

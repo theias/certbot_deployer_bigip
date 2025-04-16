@@ -569,7 +569,10 @@ class BigipDeployer(Deployer):
             try:
                 cmd = (
                     f"create /ltm profile {self.profile.type} {self.profile.name} "
-                    f"cert {self.certificate_bundle.name} key {self.certificate_bundle.name}"
+                    "cert-key-chain replace-all-with { cert-key-chain { "
+                    f"cert {self.certificate_bundle.name} "
+                    f"key {self.certificate_bundle.name} "
+                    "}}"
                 )
                 logging.debug("`%s`", cmd)
                 self.conn.run(cmd)
@@ -580,8 +583,11 @@ class BigipDeployer(Deployer):
         else:
             try:
                 cmd = (
-                    f"modify /ltm profile {self.profile.type} {self.profile.name} cert "
-                    f"{self.certificate_bundle.name} key {self.certificate_bundle.name}"
+                    f"modify /ltm profile {self.profile.type} {self.profile.name} "
+                    "cert-key-chain replace-all-with { cert-key-chain { "
+                    f"cert {self.certificate_bundle.name} "
+                    f"key {self.certificate_bundle.name} "
+                    "}}"
                 )
                 logging.debug("`%s`", cmd)
                 self.conn.run(cmd)
