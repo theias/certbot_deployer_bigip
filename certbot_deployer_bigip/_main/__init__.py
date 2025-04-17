@@ -14,7 +14,6 @@ from ..certbot_deployer_bigip import BigipDeployer
 def main(
     argv: list = sys.argv[1:],
 ) -> None:
-    # pylint: disable=line-too-long
     """
     main
     """

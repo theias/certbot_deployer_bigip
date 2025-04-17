@@ -846,7 +846,6 @@ def test_dry_run(
     stdout: str = capsys.readouterr().out
     for task_name in task_names:
         assert task_name in stdout
-    print(stdout)
 
 
 def test_main_delegation(monkeypatch: pytest.MonkeyPatch) -> None:
