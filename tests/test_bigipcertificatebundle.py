@@ -6,14 +6,14 @@ from pathlib import Path
 
 import pytest
 
-from certbot_deployer import CERT_FILENAME
-from certbot_deployer.test_helpers import COMMON_NAME, NOT_VALID_AFTER
+from certbot_deployer import (
+    CERT_FILENAME,
+    FULLCHAIN_FILENAME,
+    INTERMEDIATES_FILENAME,
+    KEY_FILENAME,
+)
+from certbot_deployer.testing import COMMON_NAME, NOT_VALID_AFTER
 from certbot_deployer_bigip.certbot_deployer_bigip import BigipCertificateBundle
-
-# pylint: disable=missing-function-docstring
-# pylint: disable=missing-class-docstring
-# pylint: disable=too-few-public-methods
-# pylint: disable=attribute-defined-outside-init
 
 STATIC_TEST_CERT: str = """-----BEGIN CERTIFICATE-----
 MIIC2TCCAcGgAwIBAgIUD5bm1RAbxJ7dqTIlZL2GwF+B8FkwDQYJKoZIhvcNAQEL
@@ -43,10 +43,16 @@ STATIC_TEST_CERT_FINGERPRINT: str = (
 @pytest.fixture(name="setup_bundle_path", scope="function")
 def fixture_setup_bundle_path(tmp_path: Path) -> Path:
     """
-    Given a pytest temp folder, reate a "valid" certificate there for the
+    Given a pytest temp folder, create a "valid" certificate there for the
     BigipCertificateBundle class to operate upon
     """
     with open(tmp_path / CERT_FILENAME, "w", encoding="utf-8") as cert_file:
+        cert_file.write(STATIC_TEST_CERT)
+    with open(tmp_path / INTERMEDIATES_FILENAME, "w", encoding="utf-8") as cert_file:
+        cert_file.write(STATIC_TEST_CERT)
+    with open(tmp_path / KEY_FILENAME, "w", encoding="utf-8") as cert_file:
+        cert_file.write(STATIC_TEST_CERT)
+    with open(tmp_path / FULLCHAIN_FILENAME, "w", encoding="utf-8") as cert_file:
         cert_file.write(STATIC_TEST_CERT)
     return tmp_path
 

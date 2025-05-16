@@ -6,7 +6,6 @@ import argparse
 import os
 import posixpath
 
-from pathlib import Path
 from typing import Any, List, Optional, Tuple, Type
 
 import pytest
@@ -17,14 +16,9 @@ from invoke.runners import Result
 
 from certbot_deployer import (
     CERT,
-    CERT_FILENAME,
     FULLCHAIN,
-    FULLCHAIN_FILENAME,
-    INTERMEDIATES_FILENAME,
-    KEY_FILENAME,
 )
-from certbot_deployer import CertificateComponent, Deployer
-from certbot_deployer.test_helpers import generate_self_signed_cert
+from certbot_deployer import CertificateBundle, CertificateComponent, Deployer
 import certbot_deployer_bigip._main as plugin_main
 from certbot_deployer_bigip.certbot_deployer_bigip import (
     BigipCertificateBundle,
@@ -33,7 +27,6 @@ from certbot_deployer_bigip.certbot_deployer_bigip import (
     CertProfile,
 )
 
-
 HOST: str = "something.domain.tld"
 KEY: str = "key"
 TEST_PROFILE: CertProfile = CertProfile(name="test_profile", type="client-ssl")
@@ -41,7 +34,9 @@ TEST_SYNC_GROUP: str = "test_sync_group"
 
 
 @pytest.fixture(name="bigip_certificate_bundle", scope="function")
-def fixture_bigip_certificate_bundle(tmp_path: Path) -> BigipCertificateBundle:
+def fixture_bigip_certificate_bundle(
+    certbot_deployer_self_signed_certificate_bundle: CertificateBundle,
+) -> BigipCertificateBundle:
     """
     Create a temporary Certbot "certificate bundle" in a temp dir for testing.
 
@@ -62,20 +57,16 @@ def fixture_bigip_certificate_bundle(tmp_path: Path) -> BigipCertificateBundle:
         BigipCertificateBundle: An instance wrapping the temporary certificate
         bundle directory.
     """
-    with open(tmp_path / CERT_FILENAME, "w", encoding="utf-8") as certfile:
-        certfile.write(generate_self_signed_cert())
-    with open(tmp_path / FULLCHAIN_FILENAME, "w", encoding="utf-8") as certfile:
-        certfile.write("fullchain")
-    with open(tmp_path / INTERMEDIATES_FILENAME, "w", encoding="utf-8") as certfile:
-        certfile.write("intermediates")
-    with open(tmp_path / KEY_FILENAME, "w", encoding="utf-8") as certfile:
-        certfile.write("key")
-    return BigipCertificateBundle(path=str(tmp_path))
+    print("###", certbot_deployer_self_signed_certificate_bundle.path)
+    bundle: BigipCertificateBundle = BigipCertificateBundle(
+        path_obj=certbot_deployer_self_signed_certificate_bundle.path_obj
+    )
+    return bundle
 
 
 @pytest.fixture(name="bigip_deployer_base", scope="function")
 def fixture_bigip_deployer(
-    bigip_certificate_bundle: BigipCertificateBundle,
+    certbot_deployer_self_signed_certificate_bundle: BigipCertificateBundle,
 ) -> BigipDeployer:
     """
     Return a BigipDeployer for testing.
@@ -83,6 +74,9 @@ def fixture_bigip_deployer(
     This fixture initializes a BigipDeployer with a temporary certificate bundle,
     but without a sync group or profile for simplicity.
     """
+    bigip_certificate_bundle = BigipCertificateBundle(
+        path_obj=certbot_deployer_self_signed_certificate_bundle.path_obj
+    )
     deployer: BigipDeployer = BigipDeployer(
         host=HOST,
         dest_temp_dir="/remote/path/",
@@ -95,13 +89,16 @@ def fixture_bigip_deployer(
 
 @pytest.fixture(name="bigip_deployer_with_profile", scope="function")
 def fixture_bigip_deployer_with_profile(
-    bigip_certificate_bundle: BigipCertificateBundle,
+    certbot_deployer_self_signed_certificate_bundle: BigipCertificateBundle,
 ) -> BigipDeployer:
     """
     Return a BigipDeployer for testing with a specified certificate profile.
 
     A sample CertProfile object (`TEST_PROFILE`) is assigned to the deployer.
     """
+    bigip_certificate_bundle = BigipCertificateBundle(
+        path_obj=certbot_deployer_self_signed_certificate_bundle.path_obj
+    )
     deployer: BigipDeployer = BigipDeployer(
         host=HOST,
         dest_temp_dir="/remote/path/",
@@ -114,7 +111,7 @@ def fixture_bigip_deployer_with_profile(
 
 @pytest.fixture(name="bigip_deployer_with_sync_group", scope="function")
 def fixture_bigip_deployer_with_sync_group(
-    bigip_certificate_bundle: BigipCertificateBundle,
+    certbot_deployer_self_signed_certificate_bundle: BigipCertificateBundle,
 ) -> BigipDeployer:
     """
     Return a BigipDeployer for testing with a specified sync group.
@@ -124,7 +121,7 @@ def fixture_bigip_deployer_with_sync_group(
     deployer: BigipDeployer = BigipDeployer(
         host=HOST,
         dest_temp_dir="/remote/path/",
-        certificate_bundle=bigip_certificate_bundle,
+        certificate_bundle=certbot_deployer_self_signed_certificate_bundle,
         sync_group=TEST_SYNC_GROUP,
         profile=None,
     )
@@ -765,7 +762,7 @@ def test_sync(
 
 def test_static_entrypoint(
     monkeypatch: pytest.MonkeyPatch,
-    bigip_certificate_bundle: BigipCertificateBundle,
+    certbot_deployer_self_signed_certificate_bundle: BigipCertificateBundle,
 ) -> None:
     """
     Test the `entrypoint` method of BigipDeployer.
@@ -795,18 +792,20 @@ def test_static_entrypoint(
         host="somewhere.domain.tld",
         profile_name=None,
         profile_type=None,
-        renewed_lineage=bigip_certificate_bundle.path,
+        renewed_lineage=certbot_deployer_self_signed_certificate_bundle.path,
         sync_group=None,
         user=None,
     )
-    BigipDeployer.entrypoint(args=args, certificate_bundle=bigip_certificate_bundle)
+    BigipDeployer.entrypoint(
+        args=args, certificate_bundle=certbot_deployer_self_signed_certificate_bundle
+    )
     assert run_count == len(tasks)
 
 
 def test_dry_run(
     monkeypatch: pytest.MonkeyPatch,
     capsys: Any,
-    bigip_certificate_bundle: BigipCertificateBundle,
+    certbot_deployer_self_signed_certificate_bundle: BigipCertificateBundle,
 ) -> None:
     """
     Verify that our entrypoint prints out what it *would* do and does not run anything
@@ -836,11 +835,13 @@ def test_dry_run(
         host="somewhere.domain.tld",
         profile_name=None,
         profile_type=None,
-        renewed_lineage=bigip_certificate_bundle.path,
+        renewed_lineage=certbot_deployer_self_signed_certificate_bundle.path,
         sync_group=None,
         user=None,
     )
-    BigipDeployer.entrypoint(args=args, certificate_bundle=bigip_certificate_bundle)
+    BigipDeployer.entrypoint(
+        args=args, certificate_bundle=certbot_deployer_self_signed_certificate_bundle
+    )
 
     assert run_count == 0
     stdout: str = capsys.readouterr().out
