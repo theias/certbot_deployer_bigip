@@ -37,8 +37,6 @@ This tool runs as a [Certbot] "deploy hook", and uploads and installs Certbot ce
         - `11.X.X`
     </details>
 
-[K15462: Managing SSL certificates for BIG-IP systems using tmsh]: https://my.f5.com/manage/s/article/K15462
-
 # Installation
 
 You can install with [pipx]:
@@ -212,6 +210,7 @@ License :: OSI Approved :: MIT License
 
 [Certbot Deployer]: https://github.com/theias/certbot_deployer
 [Certbot]: https://certbot.eff.org/
+[K15462: Managing SSL certificates for BIG-IP systems using tmsh]: https://my.f5.com/manage/s/article/K15462
 [What is BIG-IP?]: https://community.f5.com/kb/technicalarticles/what-is-big-ip/279398
 [pip]: https://pip.pypa.io/en/stable/
 [pipx]: https://pipx.pypa.io/
