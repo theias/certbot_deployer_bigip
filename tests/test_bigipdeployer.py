@@ -333,6 +333,20 @@ def test_static_argparse_post() -> None:
     BigipDeployer.argparse_post(args=args)
 
 
+def test_args_not_required() -> None:
+    """
+    Verify that none of our argparse arguments are `required=True`, as we wish
+    to let Certbot Deployer config file to supply them
+
+    Any logic about them being "required" for this plugin are in `argparse_post`
+    """
+    parser: argparse.ArgumentParser = argparse.ArgumentParser()
+    BigipDeployer.register_args(parser=parser)
+    # pylint: disable-next=protected-access
+    for action in parser._actions:
+        assert action.required is False
+
+
 @pytest.mark.parametrize(
     # Parametrize fixtures that provide a BigipDeployer and a list of expected
     # workflow Tasks

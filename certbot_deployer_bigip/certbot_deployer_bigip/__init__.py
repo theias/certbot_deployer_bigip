@@ -221,7 +221,6 @@ class BigipDeployer(Deployer):
             "--host",
             "-H",
             help=("BIG-IP host to target with changes."),
-            required=True,
             type=str,
         )
 
