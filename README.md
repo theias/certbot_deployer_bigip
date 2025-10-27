@@ -10,7 +10,7 @@ This tool runs as a [Certbot] "deploy hook", and uploads and installs Certbot ce
 # Requires
 
 * Python 3.9+
-* A local user on the target BIG-IP device with `Terminal Access` set to `tmsh`  (see [Users and SSH and shells](#users-and-ssh-and-shells))
+* A local user on the target BIG-IP device with `Terminal Access` set to `Advanced shell`  (see [Users and SSH and shells](#users-and-ssh-and-shells))
 * SSH configured to connect as the local BIG-IP user (see [Users and SSH and shells](#users-and-ssh-and-shells))
 * <details>
     <summary>Compatible BIG-IP software version</summary>
@@ -94,7 +94,7 @@ This tool runs all of its tasks on the target devices via SSH.
 
 It expects:
 
-* the local user on the BIG-IP to have `Terminal Access` set to `tmsh` and with appropriate permissions
+* the local user on the BIG-IP to have `Terminal Access` set to `Advanced shell` and with appropriate permissions
 * a working SSH configuration to connect to the target devices
 
 ### BIG-IP user permissions
@@ -177,8 +177,8 @@ An outline of the steps that this tool will take:
 1. Upload the certificate
 1. Install the certificate
 1. Verify certificate installation
-1. Zero out the uploaded key file now that it is installed (`tmsh` shell access does not allow deletion of files on disk)
-1. Zero out the uploaded certificate file now that it is installed (`tmsh` shell access does not allow deletion of files on disk)
+1. Zero out the uploaded key file now that it is installed
+1. Zero out the uploaded certificate file now that it is installed
 1. Save the running config
 1. (optionally) Create/modify a BIG-IP profile to use the new certificate and key
 1. (optionally) synchronize to BIG-IP sync-group

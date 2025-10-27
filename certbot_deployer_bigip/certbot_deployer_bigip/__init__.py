@@ -394,7 +394,7 @@ class BigipDeployer(Deployer):
         try:
             # Check node sync status
             logging.info("Checking sync status on remote...")
-            cmd: str = "show /cm sync-status"
+            cmd: str = "tmsh show /cm sync-status"
             logging.debug("`%s`", cmd)
             res = self.conn.run(cmd)
             if not re.search("^Status.*In Sync$", res.stdout, re.I | re.MULTILINE):
@@ -476,7 +476,7 @@ class BigipDeployer(Deployer):
             # Install the cert
             logging.info("Installing %s", bigip_cert_type)
             cmd: str = (
-                f"install /sys crypto {bigip_cert_type} {self.certificate_bundle.name} "
+                f"tmsh install /sys crypto {bigip_cert_type} {self.certificate_bundle.name} "
                 f"from-local-file {remote_filepath}"
             )
             logging.debug("`%s`", cmd)
@@ -501,7 +501,7 @@ class BigipDeployer(Deployer):
         try:
             # Verify the cert installed
             cmd: str = (
-                f"list /sys crypto {bigip_cert_type} {self.certificate_bundle.name}"
+                f"tmsh list /sys crypto {bigip_cert_type} {self.certificate_bundle.name}"
             )
             logging.debug("`%s`", cmd)
             res = self.conn.run(cmd)
@@ -559,13 +559,13 @@ class BigipDeployer(Deployer):
         try:
             logging.info("Checking for existing profile on BIG-IP..")
             # This tmsh command exits nonzero if the object is not found
-            cmd = f"list /ltm profile {self.profile.type} {self.profile.name}"
+            cmd = f"tmsh list /ltm profile {self.profile.type} {self.profile.name}"
             logging.debug("`%s`", cmd)
             self.conn.run(cmd)
         except UnexpectedExit:
             try:
                 cmd = (
-                    f"create /ltm profile {self.profile.type} {self.profile.name} "
+                    f"tmsh create /ltm profile {self.profile.type} {self.profile.name} "
                     "cert-key-chain replace-all-with { cert-key-chain { "
                     f"cert {self.certificate_bundle.name} "
                     f"key {self.certificate_bundle.name} "
@@ -580,7 +580,7 @@ class BigipDeployer(Deployer):
         else:
             try:
                 cmd = (
-                    f"modify /ltm profile {self.profile.type} {self.profile.name} "
+                    f"tmsh modify /ltm profile {self.profile.type} {self.profile.name} "
                     "cert-key-chain replace-all-with { cert-key-chain { "
                     f"cert {self.certificate_bundle.name} "
                     f"key {self.certificate_bundle.name} "
@@ -600,7 +600,7 @@ class BigipDeployer(Deployer):
         Save new running config to disk (`bigip.conf`)
         """
         try:
-            cmd: str = "save /sys config"
+            cmd: str = "tmsh save /sys config"
             logging.debug("`%s`", cmd)
             self.conn.run(cmd)
         except UnexpectedExit as err:
@@ -612,7 +612,7 @@ class BigipDeployer(Deployer):
         Sync BIG-IP node
         """
         try:
-            cmd: str = f"run /cm config-sync to-group {self.sync_group}"
+            cmd: str = f"tmsh run /cm config-sync to-group {self.sync_group}"
             logging.debug("`%s`", cmd)
             self.conn.run(cmd)
         except UnexpectedExit as err:

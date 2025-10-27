@@ -547,7 +547,7 @@ def test_install_cert(
     )
     remote_path: str = posixpath.join(bigip_deployer.dest_temp_dir, component.filename)
     expected_cmd: str = (
-        f"install /sys crypto {bigip_cert_type} {bigip_deployer.certificate_bundle.name} "
+        f"tmsh install /sys crypto {bigip_cert_type} {bigip_deployer.certificate_bundle.name} "
         f"from-local-file {remote_path}"
     )
     bigip_deployer.install_cert(component=component)
@@ -593,7 +593,7 @@ def test_verify_cert_installed(
         bigip_deployer.certificate_bundle, component_label
     )
     expected_cmd: str = (
-        f"list /sys crypto {bigip_cert_type} {bigip_deployer.certificate_bundle.name}"
+        f"tmsh list /sys crypto {bigip_cert_type} {bigip_deployer.certificate_bundle.name}"
     )
 
     # pylint: disable-next=too-few-public-methods
@@ -717,7 +717,9 @@ def test_manage_profile(
 
     assert len(expected_operations) == len(commands)
 
-    for command, expected_operation in zip(commands, expected_operations):
+    for command, expected_operation in zip(
+        [c.split(" ", 1)[-1] for c in commands], expected_operations
+    ):
         operation: str
         args: str
         operation, args = command.split(" ", 1)
@@ -757,7 +759,7 @@ def test_sync(
         commands.append(cmd)
 
     monkeypatch.setattr(bigip_deployer.conn, "run", fake_run)
-    expected_cmd: str = f"run /cm config-sync to-group {bigip_deployer.sync_group}"
+    expected_cmd: str = f"tmsh run /cm config-sync to-group {bigip_deployer.sync_group}"
 
     # Test for a successful run
     bigip_deployer.sync()
