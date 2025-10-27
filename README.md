@@ -97,6 +97,8 @@ It expects:
 * the local user on the BIG-IP to have `Terminal Access` set to `Advanced shell` and with appropriate permissions
 * a working SSH configuration to connect to the target devices
 
+Note: this tool used to require `Terminal Access` set to `tmsh` (lower privilege), but as of BIG-IP software version `15.1.5.1` `Advanced shell` is now required to transfer certificate files. For more, see [K49856182: SCP path not allowed after upgrade to software version 15.1.5.1]
+
 ### BIG-IP user permissions
 
 The local user on the target BIG-IP device must be granted at least the `Certificate Manager` role in order to deploy certificates.
@@ -211,6 +213,7 @@ License :: OSI Approved :: MIT License
 [Certbot Deployer]: https://github.com/theias/certbot_deployer
 [Certbot]: https://certbot.eff.org/
 [K15462: Managing SSL certificates for BIG-IP systems using tmsh]: https://my.f5.com/manage/s/article/K15462
+[K49856182: SCP path not allowed after upgrade to software version 15.1.5.1]: https://my.f5.com/manage/s/article/K49856182
 [What is BIG-IP?]: https://community.f5.com/kb/technicalarticles/what-is-big-ip/279398
 [pip]: https://pip.pypa.io/en/stable/
 [pipx]: https://pipx.pypa.io/

@@ -5,6 +5,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## Unreleased
 
+## 2.0.1 - 2025-10-27
+### Fixed
+- Update docs explaining the new requirement for `Advanced shell` permission (instead of `tmsh`)
+
 ## 2.0.0 - 2025-10-27
 ### Changed
 - Require certbot-deployer `v2.0.3`
