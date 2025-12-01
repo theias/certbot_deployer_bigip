@@ -37,6 +37,7 @@ from certbot_deployer import Deployer, CertificateBundle, CertificateComponent
 from certbot_deployer_bigip.meta import __description__, __version__
 
 BIGIP_FINGERPRINT_ALGO: str = "SHA256"
+# pylint: disable-next=invalid-name
 BIGIP_FINGERPRINT_ALGO_FUNC: Callable = hashes.SHA256
 
 
@@ -75,7 +76,7 @@ class BigipTask:
     @ single BIG-IP task for the deployer to run
     """
 
-    # pylint: disable-next=too-many-arguments
+    # pylint: disable-next=too-many-positional-arguments,too-many-arguments
     def __init__(
         self,
         exec_function: Callable,
