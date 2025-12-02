@@ -414,17 +414,14 @@ class BigipDeployer(Deployer):
         """
         Send a file via SCP.
 
-        In general these days, SCP tools actually use the SFTP protocol. This
-        includes the Fabric module on which we rely for running remote
-        commands.
+        This tool used to require SCP due to BIG-IP's limitations on SFTP
+        access based on shell type.
 
-        For our target F5 BIG-IP devices, the opposite is true - *only* the SCP
-        protocol (such as it is) is supported for `tmsh` users:
+        This is no longer necessary since `v2.0.1` of this tool, as `Advanced
+        shell` is now required, which actually would allow SFTP once again.
 
-        https://my.f5.com/manage/s/article/K22885182
-
-        So this method utilizes the separate `scp` module to implement the SCP
-        protocol which requires a tiny bit of extra handling.
+        So this now could be replaced with Paramiko/Fabric's included SFTP
+        functionality now and eliminate the `scp` dependency
         """
         if not self.conn.transport:
             # The connection "transport," which we need for our scp client, may

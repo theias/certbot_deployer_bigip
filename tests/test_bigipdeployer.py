@@ -57,7 +57,6 @@ def fixture_bigip_certificate_bundle(
         BigipCertificateBundle: An instance wrapping the temporary certificate
         bundle directory.
     """
-    print("###", certbot_deployer_self_signed_certificate_bundle.path)
     bundle: BigipCertificateBundle = BigipCertificateBundle(
         path_obj=certbot_deployer_self_signed_certificate_bundle.path_obj
     )
